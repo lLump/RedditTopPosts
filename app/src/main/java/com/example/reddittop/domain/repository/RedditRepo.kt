@@ -9,5 +9,5 @@ interface RedditRepo {
         after: String? = null,
         before: String? = null,
         count: Int,
-    ) : List<RedditPost>
+    ) : Pair<List<RedditPost>, String>
 }

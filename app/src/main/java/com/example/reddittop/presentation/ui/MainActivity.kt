@@ -1,23 +1,19 @@
-package com.example.reddittop.presentation
+package com.example.reddittop.presentation.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.example.reddittop.di.MyApplication
+import com.example.reddittop.domain.model.RedditEvent
+import com.example.reddittop.presentation.ui.screen.MainScreen
 import com.example.reddittop.presentation.ui.theme.RedditTopTheme
 import com.example.reddittop.presentation.viewmodel.RedditViewModel
-import com.example.reddittop.presentation.viewmodel.model.RedditEvent
 
 class MainActivity : ComponentActivity() {
     private lateinit var mainViewModel: RedditViewModel
@@ -27,25 +23,20 @@ class MainActivity : ComponentActivity() {
 
         val container = (application as MyApplication).apiContainer
         mainViewModel = RedditViewModel(remoteRepo = container.redditRepo)
+        mainViewModel.onEvent(RedditEvent.RefreshScreen)
+
         enableEdgeToEdge()
         setContent {
             RedditTopTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    TestApi(mainViewModel::onEvent, innerPadding)
+                    val postsState by mainViewModel.state.collectAsState()
+                    MainScreen(
+                        onEvent = mainViewModel::onEvent,
+                        state = postsState,
+                        paddings = innerPadding
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun TestApi(event: (RedditEvent) -> Unit, innerPadding: PaddingValues) {
-    Button(onClick = { event(RedditEvent.RefreshScreen) }) {
-        Text(
-            text = "Click me",
-            modifier = Modifier
-                .padding(innerPadding)
-                .size(35.dp)
-        )
     }
 }

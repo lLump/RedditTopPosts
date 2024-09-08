@@ -5,6 +5,7 @@ data class RedditResponse(
 )
 
 data class RedditData(
+    val after: String,
     val children: List<RedditChildren>
 )
 
@@ -13,7 +14,8 @@ data class RedditChildren(
 )
 
 data class RedditPostResponse(
-    val author_fullname: String,
+    val author_fullname: String?, //sometimes this field is null
+    val subreddit: String,
     val created_utc: Long,
     val thumbnail: String?,
     val num_comments: Int

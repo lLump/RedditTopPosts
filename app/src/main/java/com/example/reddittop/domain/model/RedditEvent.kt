@@ -1,4 +1,4 @@
-package com.example.reddittop.presentation.viewmodel.model
+package com.example.reddittop.domain.model
 
 sealed interface RedditEvent {
     data object RefreshScreen : RedditEvent

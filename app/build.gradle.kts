@@ -54,6 +54,7 @@ dependencies {
     // added ↓
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.coil.compose)
     // added ↑
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
