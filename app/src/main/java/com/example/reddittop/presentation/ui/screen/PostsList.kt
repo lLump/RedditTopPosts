@@ -1,6 +1,7 @@
 package com.example.reddittop.presentation.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,8 +47,8 @@ fun MainScreen(
     paddings: PaddingValues,
 ) {
     var isRefreshing by remember { mutableStateOf(false) }
-    LaunchedEffect(state.isLoading) {
-        isRefreshing = state.isLoading
+    LaunchedEffect(state.isRefreshing) {
+        isRefreshing = state.isRefreshing
     }
     BoxWithPullToRefresh(
         modifier = Modifier
@@ -66,16 +69,36 @@ fun MainScreen(
 }
 
 @Composable
-fun RedditPostsList(
+private fun RedditPostsList(
     onEvent: (RedditEvent) -> Unit,
     state: PostsState,
 ) {
+    val listState = rememberLazyListState()
+    ScrollListener(
+        listState = listState,
+        loadNext = { onEvent(RedditEvent.LoadNextPosts) }
+    )
+
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
     ) {
         items(state.posts) { post ->
             PostItem(postDetails = post)
+        }
+
+        if (state.isLoading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }

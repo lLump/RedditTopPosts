@@ -16,14 +16,16 @@ import com.example.reddittop.presentation.ui.theme.RedditTopTheme
 import com.example.reddittop.presentation.viewmodel.RedditViewModel
 
 class MainActivity : ComponentActivity() {
-    private lateinit var mainViewModel: RedditViewModel
+    private val mainViewModel by lazy {
+        RedditViewModel(
+            remoteRepo = (application as MyApplication).apiContainer.redditRepo
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val container = (application as MyApplication).apiContainer
-        mainViewModel = RedditViewModel(remoteRepo = container.redditRepo)
-        mainViewModel.onEvent(RedditEvent.RefreshScreen)
+        mainViewModel.onEvent(RedditEvent.LoadPosts)
 
         enableEdgeToEdge()
         setContent {
