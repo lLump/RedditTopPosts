@@ -1,7 +1,7 @@
-package com.example.reddittop.di
+package com.example.reddittop.di.containers
 
-import com.example.reddittop.data.api.RedditApi
-import com.example.reddittop.data.repository.RedditRepoImpl
+import com.example.reddittop.data.remote.api.RedditApi
+import com.example.reddittop.data.remote.repository.RedditRepoImpl
 import com.example.reddittop.domain.repository.RedditRepo
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

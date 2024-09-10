@@ -10,24 +10,24 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.reddittop.di.MyApplication
-import com.example.reddittop.domain.model.RedditEvent
+import com.example.reddittop.domain.model.RoomEvent
 import com.example.reddittop.presentation.ui.screen.MainScreen
 import com.example.reddittop.presentation.ui.theme.RedditTopTheme
 import com.example.reddittop.presentation.viewmodel.RedditViewModel
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by lazy {
+        val app = (application as MyApplication)
         RedditViewModel(
-            remoteRepo = (application as MyApplication).apiContainer.redditRepo,
-            openImageByUrl = (application as MyApplication).imageContainer.urlOpener,
-            downloadImage = (application as MyApplication).imageContainer.imageDownloader
+            remoteRepo = app.apiContainer.redditRepo,
+            localRepo = app.roomContainer.roomRepo,
+            openImageByUrl = app.imageContainer.urlOpener,
+            downloadImage = app.imageContainer.imageDownloader
         )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        mainViewModel.onEvent(RedditEvent.LoadPosts)
 
         enableEdgeToEdge()
         setContent {
@@ -44,5 +44,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mainViewModel.onEvent(RoomEvent.RestoreInfo)
+        // есть баг, при быстром повороте экрана и относительно большом кол-ве данных (локально сейвиться пачка целиком),
+        // данные не успевают перезаписаться из-за чего UI получает пустой список и загружает изначальную пачку
+        // из интернета
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mainViewModel.onEvent(RoomEvent.SaveInfo)
     }
 }

@@ -1,6 +1,6 @@
-package com.example.reddittop.data.api
+package com.example.reddittop.data.remote.api
 
-import com.example.reddittop.data.model.RedditResponse
+import com.example.reddittop.data.remote.model.RedditResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

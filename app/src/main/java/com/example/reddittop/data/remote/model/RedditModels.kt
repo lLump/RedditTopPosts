@@ -1,4 +1,4 @@
-package com.example.reddittop.data.model
+package com.example.reddittop.data.remote.model
 
 data class RedditResponse(
     val data: RedditData

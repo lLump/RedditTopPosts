@@ -1,6 +1,6 @@
 package com.example.reddittop.domain.repository
 
-import com.example.reddittop.data.api.RedditTime
+import com.example.reddittop.domain.model.RedditTime
 import com.example.reddittop.domain.model.RedditPost
 
 interface RedditRepo {

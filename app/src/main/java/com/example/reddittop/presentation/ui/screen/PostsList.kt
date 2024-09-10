@@ -3,6 +3,7 @@ package com.example.reddittop.presentation.ui.screen
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +44,7 @@ import com.example.reddittop.domain.model.Event
 import com.example.reddittop.domain.model.MediaEvent
 import com.example.reddittop.domain.model.RedditEvent
 import com.example.reddittop.domain.model.RedditPost
+import com.example.reddittop.domain.model.RedditTime
 import com.example.reddittop.presentation.state.ScreenState
 import com.example.reddittop.presentation.ui.screen.additional.BoxWithPullToRefresh
 import com.example.reddittop.presentation.ui.screen.additional.ImageDialog
@@ -59,23 +62,30 @@ fun MainScreen(
     LaunchedEffect(state.isRefreshing) {
         isRefreshing = state.isRefreshing
     }
-    BoxWithPullToRefresh(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddings),
-        content = {
-            RedditPostsList(
-                onEvent = onEvent,
-                state = state,
-            )
-        },
-        onRefresh = {
-            isRefreshing = true
-            onEvent(RedditEvent.RefreshScreen)
-        },
-        isRefreshing = isRefreshing
-    )
-    ShowIsImageDownloaded(imageLoadingState)
+            .padding(paddings)
+    ) {
+        TimeSelectionRow { chosenTime ->
+            onEvent(RedditEvent.ChangeTimeDiapason(chosenTime))
+        }
+        BoxWithPullToRefresh(
+            modifier = Modifier.fillMaxSize(),
+            content = {
+                RedditPostsList(
+                    onEvent = onEvent,
+                    state = state,
+                )
+            },
+            onRefresh = {
+                isRefreshing = true
+                onEvent(RedditEvent.RefreshScreen)
+            },
+            isRefreshing = isRefreshing
+        )
+        ShowIsImageDownloaded(imageLoadingState)
+    }
 }
 
 @Composable
@@ -219,5 +229,89 @@ private fun PostComments(modifier: Modifier, commentsAmount: Int) {
         horizontalAlignment = Alignment.End,
     ) {
         Text(text = "$commentsAmount comments", fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun TimeSelectionRow(onTimeChosen: (RedditTime) -> Unit) {
+    var selectedOption by remember { mutableStateOf(RedditTime.ALL) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Тут можно написать куда лаконичнее
+        SingleTimeSelection(
+            selectedOption = selectedOption,
+            onClick = { chosenTime ->
+                selectedOption = chosenTime
+                onTimeChosen(chosenTime)
+            },
+            timeToChoose = RedditTime.ALL
+        )
+//        SingleTimeSelection(
+//            selectedOption = selectedOption,
+//            onClick = { chosenTime ->
+//                selectedOption = chosenTime
+//                onTimeChosen(chosenTime)
+//            },
+//            timeToChoose = RedditTime.YEAR
+//        )
+        SingleTimeSelection(
+            selectedOption = selectedOption,
+            onClick = { chosenTime ->
+                selectedOption = chosenTime
+                onTimeChosen(chosenTime)
+            },
+            timeToChoose = RedditTime.MONTH
+        )
+        SingleTimeSelection(
+            selectedOption = selectedOption,
+            onClick = { chosenTime ->
+                selectedOption = chosenTime
+                onTimeChosen(chosenTime)
+            },
+            timeToChoose = RedditTime.WEEK
+        )
+        SingleTimeSelection(
+            selectedOption = selectedOption,
+            onClick = { chosenTime ->
+                selectedOption = chosenTime
+                onTimeChosen(chosenTime)
+            },
+            timeToChoose = RedditTime.DAY
+        )
+        SingleTimeSelection(
+            selectedOption = selectedOption,
+            onClick = { chosenTime ->
+                selectedOption = chosenTime
+                onTimeChosen(chosenTime)
+            },
+            timeToChoose = RedditTime.HOUR
+        )
+    }
+}
+
+@Composable
+private fun SingleTimeSelection(
+    selectedOption: RedditTime,
+    onClick: (RedditTime) -> Unit,
+    timeToChoose: RedditTime,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable {
+            onClick(timeToChoose)
+        }
+    ) {
+        RadioButton(
+            selected = (selectedOption == timeToChoose),
+            onClick = { onClick(timeToChoose) }
+        )
+        Text(
+            text = timeToChoose.invoke(),
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }

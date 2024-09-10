@@ -2,13 +2,16 @@ package com.example.reddittop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.reddittop.data.api.RedditTime
+import com.example.reddittop.domain.model.RedditTime
 import com.example.reddittop.domain.model.Event
 import com.example.reddittop.domain.repository.RedditRepo
 import com.example.reddittop.domain.model.RedditEvent
 import com.example.reddittop.domain.model.RedditEvent.*
 import com.example.reddittop.domain.model.MediaEvent
 import com.example.reddittop.domain.model.MediaEvent.*
+import com.example.reddittop.domain.model.RoomEvent
+import com.example.reddittop.domain.model.RoomEvent.*
+import com.example.reddittop.domain.repository.RoomRepo
 import com.example.reddittop.domain.useCase.ImageDownloader
 import com.example.reddittop.domain.useCase.UrlOpener
 import com.example.reddittop.presentation.state.ScreenState
@@ -24,6 +27,7 @@ import kotlinx.coroutines.withContext
 
 class RedditViewModel(
     private val remoteRepo: RedditRepo,
+    private val localRepo: RoomRepo,
     private val openImageByUrl: UrlOpener,
     private val downloadImage: ImageDownloader,
 ) : ViewModel() {
@@ -39,11 +43,9 @@ class RedditViewModel(
         when (event) {
              is RedditEvent -> when (event) {
                 RefreshScreen -> viewModelScope.launch {
-                    requestInfo.clearInfo()
                     prepareStateToRefresh()
-                    initialLoadPosts()
-                }
-                LoadPosts -> viewModelScope.launch {
+                    requestInfo.clearInfo()
+                    withContext(Dispatchers.Default) { localRepo.clearDB() }
                     initialLoadPosts()
                 }
                 LoadNextPosts -> viewModelScope.launch {
@@ -53,7 +55,8 @@ class RedditViewModel(
                         loadNextPosts()
                     }
                 }
-            }
+                 is ChangeTimeDiapason -> requestInfo.time = event.time
+             }
             is MediaEvent -> when (event) {
                 is OpenImage -> openImageByUrl(event.url)
                 is SaveImage -> viewModelScope.launch(Dispatchers.Default) {
@@ -62,6 +65,34 @@ class RedditViewModel(
                         _isImageDownloaded.emit(isSuccess)
                         delay(1500)
                         _isImageDownloaded.emit(null)
+                    }
+                }
+            }
+            is RoomEvent -> when (event) {
+                SaveInfo -> viewModelScope.launch(Dispatchers.Default) {
+                    localRepo.insertInfo(
+                        posts = _state.value.posts,
+                        after = requestInfo.after ?: ""
+                    )
+                }
+                RestoreInfo -> viewModelScope.launch {
+                    prepareStateToNextLoad()
+                    val (posts, after) = withContext(Dispatchers.Default) {
+                        localRepo.getInfo()
+                    }
+                    if (posts.isEmpty()) {
+                        initialLoadPosts()
+                    } else {
+                        _state.emit(
+                            ScreenState(
+                                posts = posts,
+                                isLoading = false
+                            )
+                        )
+                        requestInfo.addNewInfo(
+                            newAfter = after,
+                            count = posts.count()
+                        )
                     }
                 }
             }
@@ -99,7 +130,7 @@ class RedditViewModel(
 
     private suspend fun getPosts() = withContext(Dispatchers.IO) {
         remoteRepo.getTopPosts(
-            time = RedditTime.ALL,
+            time = requestInfo.time,
             after = requestInfo.after,
             count = requestInfo.itemsLoaded,
         )

@@ -44,7 +44,7 @@ class ImageDownloaderImpl(private val context: Context): ImageDownloader {
             outputStream.flush()
             outputStream.close()
 
-            MediaScannerConnection.scanFile(context, arrayOf(imageFile.toString()), null) { path, uri ->
+            MediaScannerConnection.scanFile(context, arrayOf(imageFile.toString()), null) { path, _ ->
                 Log.d("Image_Downloader", "Image saved. Path: $path")
             }
             return imageFile

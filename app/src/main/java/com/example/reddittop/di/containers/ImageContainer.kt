@@ -1,4 +1,4 @@
-package com.example.reddittop.di
+package com.example.reddittop.di.containers
 
 import android.content.Context
 import com.example.reddittop.data.useCase.ImageDownloaderImpl

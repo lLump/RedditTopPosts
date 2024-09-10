@@ -1,4 +1,4 @@
-package com.example.reddittop.data.model
+package com.example.reddittop.data.remote.model
 
 import com.example.reddittop.domain.model.RedditPost
 import java.util.concurrent.TimeUnit
