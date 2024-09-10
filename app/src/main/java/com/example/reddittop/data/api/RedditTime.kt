@@ -5,7 +5,7 @@ enum class RedditTime(private val time: String) {
     DAY("day"),
     WEEK("week"),
     MONTH("month"),
-//    YEAR("year"), //internal error
+    YEAR("year"), //internal error
     ALL("all");
 
     operator fun invoke(): String = this.time

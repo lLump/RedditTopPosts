@@ -1,6 +1,8 @@
 package com.example.reddittop.presentation.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,14 +38,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.example.reddittop.domain.model.Event
+import com.example.reddittop.domain.model.MediaEvent
 import com.example.reddittop.domain.model.RedditEvent
 import com.example.reddittop.domain.model.RedditPost
-import com.example.reddittop.presentation.state.PostsState
+import com.example.reddittop.presentation.state.ScreenState
+import com.example.reddittop.presentation.ui.screen.additional.BoxWithPullToRefresh
+import com.example.reddittop.presentation.ui.screen.additional.ImageDialog
+import com.example.reddittop.presentation.ui.screen.additional.ScrollListener
+import com.example.reddittop.presentation.ui.screen.additional.ShowIsImageDownloaded
 
 @Composable
 fun MainScreen(
-    onEvent: (RedditEvent) -> Unit,
-    state: PostsState,
+    onEvent: (Event) -> Unit,
+    state: ScreenState,
+    imageLoadingState: Boolean?,
     paddings: PaddingValues,
 ) {
     var isRefreshing by remember { mutableStateOf(false) }
@@ -66,12 +75,13 @@ fun MainScreen(
         },
         isRefreshing = isRefreshing
     )
+    ShowIsImageDownloaded(imageLoadingState)
 }
 
 @Composable
 private fun RedditPostsList(
-    onEvent: (RedditEvent) -> Unit,
-    state: PostsState,
+    onEvent: (Event) -> Unit,
+    state: ScreenState,
 ) {
     val listState = rememberLazyListState()
     ScrollListener(
@@ -85,7 +95,15 @@ private fun RedditPostsList(
             .fillMaxSize()
     ) {
         items(state.posts) { post ->
-            PostItem(postDetails = post)
+            PostItem(
+                postDetails = post,
+                openImage = { imageUrl ->
+                    onEvent(MediaEvent.OpenImage(imageUrl))
+                },
+                downloadImage = { imageUrl ->
+                    onEvent(MediaEvent.SaveImage(imageUrl))
+                },
+            )
         }
 
         if (state.isLoading) {
@@ -104,7 +122,11 @@ private fun RedditPostsList(
 }
 
 @Composable
-private fun PostItem(postDetails: RedditPost) {
+private fun PostItem(
+    postDetails: RedditPost,
+    openImage: (String) -> Unit,
+    downloadImage: (String) -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -118,9 +140,11 @@ private fun PostItem(postDetails: RedditPost) {
                     .size(64.dp)
                     .align(Alignment.CenterVertically)
                     .clip(CircleShape),
-                imageUrl = postDetails.thumbnailUrl
+                imageUrl = postDetails.thumbnailUrl,
 //                    ?: "https://styles.redditmedia.com/t5_2hk26o/styles/communityIcon_bc6r0xp98am41.png"
                 // default image that I randomly picked up
+                openImage = openImage,
+                downloadImage = downloadImage,
             )
             // theme, author, hours ago
             PostContent(
@@ -139,13 +163,33 @@ private fun PostItem(postDetails: RedditPost) {
 }
 
 @Composable
-private fun PostThumbnail(modifier: Modifier, imageUrl: String?) {
-    Image(
-        modifier = modifier,
-        painter = rememberAsyncImagePainter(imageUrl),
-        contentDescription = null,
-        contentScale = ContentScale.Crop
-    )
+private fun PostThumbnail(
+    modifier: Modifier,
+    imageUrl: String?,
+    openImage: (String) -> Unit,
+    downloadImage: (String) -> Unit,
+) {
+    if (imageUrl == "default") { // в реддите thumbnail never null (вроде бы как)
+                                 // не проблема отрисовывать пустой image, проблема
+                                 // в том, что его можно потом открыть
+        Spacer(modifier = modifier)
+    } else {
+        var showDialogImage by remember { mutableStateOf(false) }
+        Image(
+            modifier = modifier.clickable { showDialogImage = true },
+            painter = rememberAsyncImagePainter(imageUrl),
+            contentDescription = null,
+            contentScale = ContentScale.Crop
+        )
+        if (showDialogImage) {
+            ImageDialog(
+                imageUrl = imageUrl,
+                isShowDialog = { showDialogImage = it },
+                openImageUrl = openImage,
+                downloadImage = downloadImage
+            )
+        }
+    }
 }
 
 @Composable

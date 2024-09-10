@@ -18,7 +18,9 @@ import com.example.reddittop.presentation.viewmodel.RedditViewModel
 class MainActivity : ComponentActivity() {
     private val mainViewModel by lazy {
         RedditViewModel(
-            remoteRepo = (application as MyApplication).apiContainer.redditRepo
+            remoteRepo = (application as MyApplication).apiContainer.redditRepo,
+            openImageByUrl = (application as MyApplication).imageContainer.urlOpener,
+            downloadImage = (application as MyApplication).imageContainer.imageDownloader
         )
     }
 
@@ -32,10 +34,12 @@ class MainActivity : ComponentActivity() {
             RedditTopTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val postsState by mainViewModel.state.collectAsState()
+                    val imageLoadingState by mainViewModel.isImageDownloaded.collectAsState()
                     MainScreen(
                         onEvent = mainViewModel::onEvent,
                         state = postsState,
-                        paddings = innerPadding
+                        imageLoadingState = imageLoadingState,
+                        paddings = innerPadding,
                     )
                 }
             }
